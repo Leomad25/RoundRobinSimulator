@@ -1,0 +1,307 @@
+<header>
+    <h1>Simulador Round Robin</h1>
+</header>
+<main style="display: block;">
+    <section id="screen-1" style="display: block;">
+        <section class="screen1-cardBody">
+            <h2>Parámetros de simulación</h2>
+            <p>Cantidad de processos a simular.</p>
+            <input type="number" id="processForSimulate" placeholder="Max: {{ dataLength }}">
+            <br>
+            <p>Organizar por.</p>
+            <input type="text" id="organize" placeholder="CUP o Memoria">
+            <br>
+            <p>Tiempo de expulsión.</p>
+            <input type="number" id="expulsionTime" placeholder="en milisegundos">
+            <br>
+            <p>Quamtum.</p>
+            <input type="number" id="quamtumCPU">
+            <br>
+            <button onclick="btn_startSimulation()">EMPEZAR SIMULACIÓN</button>
+        </section>
+    </section>
+    <section id="screen-2" style="display: none;">
+        <section class="screen2-controlPanel">
+            <button onclick="window.location.reload()">Reiniciar Simulacion</button>
+        </section>
+        <section class="screen2-body">
+            <section class="simulation-listProcess">
+                <h2>Procesos listados para la simulación</h2>
+                <table id="table-simulation-listProcess"></table>
+            </section>
+            <section class="simulation-infCurrent">
+                <h2>Seguimiento en tiempo real</h2>
+                <section id="nameProcess-simulation-infCurrent"></section>
+                <table id="table-simulation-infCurrent"></table>
+            </section>
+            <section class="simulation-follow">
+                <h2>Simulación</h2>
+                <section class="simulation-follow-item">
+                    <h3>En Cola</h3>
+                    <section id="inLine" class="itemsList"></section>
+                </section>
+                <section class="simulation-follow-item">
+                    <h3>En Ejecución</h3>
+                    <section id="inAction" class="itemsList"></section>
+                </section>
+                <section class="simulation-follow-item">
+                    <h3>Terminados</h3>
+                    <section id="inFinish" class="itemsList"></section> 
+                </section>
+            </section>
+            <section class="simulation-record">
+                <h2>Resultados</h2>
+                <table id="table-simulation-record"></table>
+            </section>
+        </section>
+    </section>
+</main>
+<footer>
+    <p>Crate by   -   Leonardo Aguado, Oscar Lopez, Luis Arrieta, Jonathan Brito</p>
+    <script>
+var processForSimulate, organize, expulsionTime, quamtumCPU;
+
+function btn_startSimulation() {
+    var docProcessForSimulate = document.getElementById('processForSimulate').value;
+    var docOrganize = document.getElementById('organize').value;
+    var docExpulsionTime = document.getElementById('expulsionTime').value;
+    var docQuamtumCPU = document.getElementById('quamtumCPU').value;
+
+    if (docProcessForSimulate != '') {
+        if (docOrganize != '') {
+            if (docExpulsionTime != '') {
+                if (docQuamtumCPU != '') {
+                    validateValues(docProcessForSimulate, docOrganize, docExpulsionTime, docQuamtumCPU);
+                } else {
+                    alert('Determine el cuamtum que trabaja el procesador.');
+                }
+            } else {
+                alert('Determine el tiempo que requiere un proceso para ser expulsado.');
+            }
+        } else {
+            alert('Determine la forma de organización de los procesos.');
+        }
+    } else {
+        alert('Determine cantos procesos va a simular.');
+    }
+}
+
+function validateValues(docProcessForSimulate, docOrganize, docExpulsionTime, docQuamtumCPU) {
+    if (Number.isInteger(parseInt(docProcessForSimulate))) {
+        if ((parseInt(docProcessForSimulate) >= 1 && parseInt(docProcessForSimulate) <= {{ dataLength }})) {
+            if (docOrganize == 'CPU' || docOrganize == 'Memoria') {
+                if (Number.isInteger(parseInt(docExpulsionTime))) {
+                    if (Number.isInteger(parseInt(docQuamtumCPU))) {
+                        processForSimulate = docProcessForSimulate;
+                        organize = docOrganize;
+                        expulsionTime = docExpulsionTime;
+                        quamtumCPU = docQuamtumCPU;
+                        startSimulation();
+                    } else {
+                        alert('El quamtum es erroneo');
+                    }
+                } else {
+                    alert('El tiempo de expulsión erroneo');
+                }
+            } else {
+                alert('Solo se acepta un ordenamiento. CPU o Memoria');
+            }
+        } else {
+            alert('El minimo es 1 y el maximo es ' + {{ dataLength }});
+        }
+    } else {
+        alert ('La cantidad de procesos es erronea');
+    }
+}
+
+function shortenData(data) {
+    let temp = [];
+    for (i=0; i<processForSimulate; i++) {
+        temp.push(data[i]);
+    }
+    return temp;
+}
+
+function setDataInTableSimulationListProcess(data) {
+    console.log(data);
+    const docTable = document.getElementById('table-simulation-listProcess');
+    docTable.innerHTML = '<tr><td>Num.</td><td>Nombre</td><td>PId</td><td>session</td><td>User</td><td>Memoria</td><td>Tiempo en CPU</td></tr>';
+    var counter = 1;
+    data.forEach(element => {
+        docTable.innerHTML += '<tr><td>' + counter + '</td><td>' + element.processName + '</td><td>' + element.pid + '</td><td>' + element.sesion + '</td><td>' + element.user + '</td><td>' + element.memorie + '</td><td>' + element.timeCPU + '</td></tr>';
+        counter++;
+    });
+}
+
+function prepareSimulationFollow(data) {
+    let tempData = [];
+    data.forEach(element => {
+        element.timeInSimulation = 0;
+        element.timeStart = 0;
+        element.timeFinish = 0;
+        if (element.user == 'console') {
+            element.expulsive = 1;
+        } else {
+            element.expulsive = 0;
+        }
+        tempData.push(element);
+    });
+    return tempData;
+}
+
+var simulation_working = true, simulation_cicle = 0, dataFinish = [];
+
+function printSimulationInScreen(data) {
+    // find if process running
+    var pid_process_inAction = -1;
+    data.forEach(element => {
+        if (element.status == 'inAction') pid_process_inAction = element.pid;
+    });
+    // Simulation Information Current
+    const documentNameProcessSimulationInfCurrent = document.getElementById('nameProcess-simulation-infCurrent');
+    documentNameProcessSimulationInfCurrent.innerHTML = '<p>Ciclo de simulacion: ' + simulation_cicle + '</p>';
+    if (pid_process_inAction =! -1) {
+        var quamtumWord = '';
+        data.forEach(element => {
+            if (element.pid == pid_process_inAction) {
+                var quamtumOfItem = element.quamtum;
+                if (quamtumOfItem > element.maxQuamtum) quamtumOfItem = element.maxQuamtum;
+                for (i=0; i<quamtumOfItem; i++) {
+                    quamtumWord += element.processName.charAt(i);
+                }
+            }
+        });
+        documentNameProcessSimulationInfCurrent.innerHTML += '<p>Progreso del quamtum: ' + quamtumWord + '</p>'
+    }
+    // Simulation Follow
+    var isActive = false;
+    const documentInLine = document.getElementById('inLine'); // In line
+    data.forEach(element => { if (element.status == 'inLine') isActive =true; });
+    documentInLine.innerHTML = '';
+    if (isActive) {
+        data.forEach(element => {
+            if (element.status == 'inLine') {
+                documentInLine.innerHTML += '<section class="card-process">' +
+                    '<h3>PId: ' + element.pid + '</h3>' +
+                    '<p>' + element.processName + '</p>' +
+                    '<p>Quamtum: ' + element.maxQuamtum + '</p>' +
+                    '<p>Ejecuciones: ' + element.quamtum + '</p>' +
+                    '</section>';
+            } 
+        });
+    }
+    isActive = false;
+    const documentInAction = document.getElementById('inAction'); // In Action
+    data.forEach(element => { if (element.status == 'inAction') isActive =true; });
+    documentInAction.innerHTML = '';
+    if (isActive) {
+        data.forEach(element => {
+            if (element.status == 'inAction') {
+                documentInAction.innerHTML += '<section class="card-process">' +
+                    '<h3>PId: ' + element.pid + '</h3>' +
+                    '<p>' + element.processName + '</p>' +
+                    '<p>Quamtum: ' + element.maxQuamtum + '</p>' +
+                    '<p>Ejecuciones: ' + element.quamtum + '</p>' +
+                    '</section>';
+            } 
+        });
+    }
+    isActive = false;
+    const documentInFinish = document.getElementById('inFinish'); // In Finish
+    dataFinish.forEach(element => { if (element.status == 'inFinish') isActive =true; });
+    documentInFinish.innerHTML = '';
+    if (isActive) {
+        dataFinish.forEach(element => {
+            if (element.status == 'inFinish') {
+                documentInFinish.innerHTML += '<section class="card-process">' +
+                    '<h3>PId: ' + element.pid + '</h3>' +
+                    '<p>' + element.processName + '</p>' +
+                    '<p>Quamtum: ' + element.maxQuamtum + '</p>' +
+                    '<p>Ejecuciones: ' + element.quamtum + '</p>' +
+                    '</section>';
+            } 
+        });
+    }
+    // Simulation Record
+    var counterFinish = 1;
+    const docTableSimulationRecord = document.getElementById('table-simulation-record');
+    docTableSimulationRecord.innerHTML = '<tr><td>Num.</td><td>Process</td><td>Tiempo llegada</td><td>Rafaga</td><td>Prioridad</td><td>Turna round</td><td>Tiempo Finalizacion</td></tr>';
+    if (dataFinish.length > 0) {
+        dataFinish.forEach(element => {
+            docTableSimulationRecord.innerHTML += '<tr><td>'+counterFinish+'</td><td>'+element.processName+'</td><td>0</td><td>'+element.quamtum+'</td><td>'+element.expulsive+'</td><td>'+(element.quamtum*expulsionTime)+'</td><td>'+(element.maxQuamtum*expulsionTime)+'</td></tr>';
+            counterFinish++;
+        });
+    }
+}
+
+function updateSimulationFollow(data) {
+    if (simulation_cicle == 0) { // if cicle is Start
+        printSimulationInScreen(data);
+    } else { // normal cicle
+        if (data[0].status == 'inLine') {
+            data[0].status = 'inAction';
+            data[0].quamtum = parseInt(data[0].quamtum) + parseInt(quamtumCPU);
+        } else
+        if (data[0].status == 'inAction') {
+            data[0].quamtum = parseInt(data[0].quamtum) + parseInt(quamtumCPU);
+        }
+        printSimulationInScreen(data);
+        if (data[0].quamtum >= data[0].maxQuamtum) {
+            data[0].status = 'inFinish';
+            dataFinish.push(data[0]);
+            data.shift();
+        }
+        if (data[0].expulsive == 0) { // in the case of expulsive
+            data[0].status = 'inLine';
+            data.push(data[0]);
+            data.shift();
+        }
+    }
+    // Check if simulation was finish
+    var anElementNotFinish = false;
+    if (data.length > 0) anElementNotFinish = true;
+    if (!anElementNotFinish) {
+        simulation_working = false;
+        printSimulationInScreen(data);
+    };
+    // Bucle
+    if (simulation_working) {
+        setTimeout(() => {
+            updateSimulationFollow(data);
+            simulation_cicle++;
+        }, 1000);
+    }
+}
+
+function startSimulation() {
+    document.getElementById('screen-1').style = 'display: none';
+    document.getElementById('screen-2').style = 'display: block';
+    var processName, pid, user, memorie, timeCPU, status, quamtum, maxQuamtum;
+    let data = [];
+    {{#each data}}
+        processName = '{{processName}}';
+        pid = '{{pid}}';
+        if ('{{user}}' == 'N/D') {
+            user = 'console';
+        } else {
+            user = '{{user}}';
+        }
+        memorie = '{{memorie}}';
+        timeCPU = '{{timeCPU}}';
+        status = 'inLine';
+        quamtum = 0;
+        maxQuamtum = processName.length;
+        data.push( { processName, pid, user, memorie, timeCPU, status, quamtum, maxQuamtum } );
+    {{/each}}
+    data = shortenData(data);
+    setDataInTableSimulationListProcess(data);
+    prepareSimulationFollow(data);
+    if (simulation_working) {
+        setTimeout(() => {
+            updateSimulationFollow(data);
+            simulation_cicle++;
+        }, 1000);
+    }
+}
+    </script>
+</footer>

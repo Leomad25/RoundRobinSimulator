@@ -1,0 +1,156 @@
+* {
+    border: 0;
+    margin: 0;
+    cursor: default;
+}
+
+header {
+    background-color: rgb(0, 0, 255);
+    height: 50px;
+    width: 100%;
+    color: white;
+    display: flex;
+    position: fixed;
+    top: 0;
+    justify-content: center;
+    align-items: center;
+}
+
+footer {
+    background-color: rgb(0, 0, 255);
+    height: 30px;
+    width: 100%;
+    color: white;
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    justify-content: center;
+    align-items: center;
+}
+
+main {
+    margin-top: 50px;
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+    #screen-1 {
+        padding-top: 20px;
+        padding-bottom: 20px;
+        display: block;
+        text-align: center;
+        width: 100%;
+    }
+
+        #screen-1 h2 {
+            color: black;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        #screen-1 p {
+            font-size: 1.3em;
+        }
+
+        #screen-1 input {
+            width: 20em;
+            height: 30px;
+            margin-bottom: 10px;
+            cursor: text;
+            text-align: center;
+            border-radius: 25px;
+            background-color: rgba(0, 0, 0, .4);
+            color: white;
+        }
+
+        #screen-1 button {
+            margin-top: 10px;
+            background-color: black;
+            color: white;
+            font-family: 'Courier New';
+            font-weight: bold;
+            font-size: 1.3em;
+            padding: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+    
+    #screen-2 {
+        display: block;
+        text-align: center;
+        width: 100%;
+    }
+
+        #screen-2 .screen2-controlPanel {
+            background-color: rgba(0, 0, 0, .4);
+            display: block;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            width: 100%;
+        }
+
+            #screen-2 .screen2-controlPanel button {
+                background-color: black;
+                font-size: 1.2em;
+                color: white;
+                padding: 10px;
+                border-radius: 25px;
+                font-family: 'Courier New';
+            }
+        
+        #screen-2 .screen2-body {
+            width: 100%;
+        }
+
+            #screen-2 .screen2-body .simulation-record {
+                margin-top: 50px;
+                width: 100%;
+            }
+
+                #screen-2 .screen2-body .simulation-record #table-simulation-record {
+                    text-align: center;
+                    width: 100%;
+                }
+            
+            #screen-2 .screen2-body .simulation-listProcess {
+                width: 100%;
+            }
+
+                #screen-2 .screen2-body .simulation-listProcess table {
+                    text-align: center;
+                    width: 100%;
+                }
+
+            #screen-2 .screen2-body .simulation-infCurrent {
+                margin-top: 50px;
+                margin-bottom: 30px;
+                width: 100%;
+                background-color: rgba(0, 0, 0, .3);
+            }
+
+            #screen-2 .screen2-body .simulation-follow {
+                margin-bottom: 50px;
+                width: 100%;
+            }
+
+                #screen-2 .screen2-body .simulation-follow .simulation-follow-item {
+                    width: 100%;
+                    background-color: rgba(0, 0, 0, .2);
+                    margin-bottom: 20px;
+                }
+
+                    #screen-2 .screen2-body .simulation-follow .simulation-follow-item h3 {
+                        text-align: center;
+                    }
+
+                    #screen-2 .screen2-body .simulation-follow .simulation-follow-item .itemsList {
+                        width: 100%;
+                    }
+
+                    #screen-2 .screen2-body .simulation-follow .simulation-follow-item .itemsList .card-process {
+                        display: inline-block;
+                        background-color: rgba(0, 0, 255, .5);
+                        height: 80px;
+                        width: 180px;
+                        margin: 10px;
+                    }
